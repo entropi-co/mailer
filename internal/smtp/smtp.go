@@ -1,24 +1,29 @@
 package smtp
 
 import (
+	"bytes"
+	"fmt"
 	"github.com/mhale/smtpd"
 	"github.com/sirupsen/logrus"
 	"mailer/internal"
 	"net"
+	"net/mail"
+	"strings"
 )
 
 func mailHandler(origin net.Addr, from string, to []string, data []byte) error {
-	//message, _ := mail.ReadMessage(bytes.NewReader(data))
-	//fmt.Printf("From %+v\n", from)
-	//fmt.Printf("To %+v\n", to)
+	_, _ = mail.ReadMessage(bytes.NewReader(data))
+	fmt.Printf("From %+v\n", from)
+	fmt.Printf("To %+v\n", to)
 	//handleOutbound(message)
 	return nil
 }
 
 func rcptHandler(remoteAddr net.Addr, from string, to string) bool {
-	//logrus.Printf("[@rcptHandler] FROM %s TO %s REMOTE %s\n", from, to, remoteAddr)
-	//components := strings.Split(to, "@")
-	//domain := components[1]
+	logrus.Printf("[@rcptHandler] FROM %s TO %s REMOTE %s\n", from, to, remoteAddr)
+	components := strings.Split(to, "@")
+	domain := components[1]
+	fmt.Printf("[@rcptHandler] Domain %s \n", domain)
 	return true
 }
 
