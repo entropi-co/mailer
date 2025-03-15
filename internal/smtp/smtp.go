@@ -47,6 +47,14 @@ func ServeSMTP() {
 		AuthRequired: !internal.Config.SMTPNoAuth,
 	}
 
+	if internal.Config.TLSEnabled {
+		if err := server.ConfigureTLS(internal.Config.TLSCertificatePath, internal.Config.TLSKeyPath); err != nil {
+			logrus.Fatalf("Unable to configure TLS for SMTP: %v", err)
+			return
+		}
+	}
+
+	logrus.Infoln("Listening")
 	err := server.ListenAndServe()
 	if err != nil {
 		logrus.Fatalf("Failed to start SMTP server: %s", err)

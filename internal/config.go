@@ -7,11 +7,14 @@ import (
 )
 
 type MailerConfig struct {
-	SMTPEnabled    bool     `env:"SMTP_ENABLED" envDefault:"true"`
-	SMTPHost       string   `env:"SMTP_HOST" envDefault:"0.0.0.0:587"`
-	SMTPDomains    []string `env:"SMTP_DOMAINS"`
-	SMTPNoAuth     bool     `env:"SMTP_NO_AUTH" envDefault:"false"`
-	SMTPServiceKey string   `env:"SMTP_SERVICE_KEY" envDefault:""`
+	SMTPEnabled        bool     `env:"SMTP_ENABLED" envDefault:"true"`
+	SMTPHost           string   `env:"SMTP_HOST" envDefault:"0.0.0.0:587"`
+	SMTPDomains        []string `env:"SMTP_DOMAINS"`
+	SMTPNoAuth         bool     `env:"SMTP_NO_AUTH" envDefault:"false"`
+	SMTPServiceKey     string   `env:"SMTP_SERVICE_KEY" envDefault:""`
+	TLSEnabled         bool     `env:"TLS_ENABLED" envDefault:"false"`
+	TLSCertificatePath string   `env:"TLS_CERTIFICATE_PATH" envDefault:"./mailer.crt"`
+	TLSKeyPath         string   `env:"TLS_KEY_PATH" envDefault:"./mailer.key"`
 }
 
 var Config MailerConfig
