@@ -6,33 +6,36 @@ import (
 	"github.com/mhale/smtpd"
 	"github.com/sirupsen/logrus"
 	"mailer/internal"
+	"mailer/internal/instance"
 	"net"
 	"net/mail"
 	"strings"
 )
 
 func mailHandler(origin net.Addr, from string, to []string, data []byte) error {
-	_, _ = mail.ReadMessage(bytes.NewReader(data))
+	message, err := mail.ReadMessage(bytes.NewReader(data))
 	fmt.Printf("From %+v\n", from)
 	fmt.Printf("To %+v\n", to)
-	//handleOutbound(message)
+
 	return nil
 }
 
+// TODO: Add spam remote determination
 func rcptHandler(remoteAddr net.Addr, from string, to string) bool {
-	logrus.Printf("[@rcptHandler] FROM %s TO %s REMOTE %s\n", from, to, remoteAddr)
 	components := strings.Split(to, "@")
 	domain := components[1]
-	fmt.Printf("[@rcptHandler] Domain %s \n", domain)
+	if domain != internal.Config.SMTPDomain {
+		return false
+	}
 	return true
 }
 
 // authHandler checks if password matches service key
 func authHandler(remoteAddr net.Addr, mechanism string, username []byte, password []byte, shared []byte) (bool, error) {
-	return string(username) == "service" && string(password) == internal.Config.SMTPServiceKey, nil
+	return string(username) == "service" && string(password) == internal.Config.GlobalServiceKey, nil
 }
 
-func ServeSMTP() {
+func ServeSMTP(instance *instance.Instance) {
 	if !internal.Config.SMTPEnabled {
 		return
 	}
