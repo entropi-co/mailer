@@ -2,20 +2,34 @@ package smtp
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/mhale/smtpd"
 	"github.com/sirupsen/logrus"
 	"mailer/internal"
 	"mailer/internal/instance"
+	"mailer/internal/storage"
 	"net"
 	"net/mail"
 	"strings"
+	"time"
 )
 
-func mailHandler(origin net.Addr, from string, to []string, data []byte) error {
+type SMTP struct {
+	Instance *instance.Instance
+}
+
+func (s *SMTP) mailHandler(origin net.Addr, from string, to []string, data []byte) error {
 	message, err := mail.ReadMessage(bytes.NewReader(data))
-	fmt.Printf("From %+v\n", from)
-	fmt.Printf("To %+v\n", to)
+	if err != nil {
+		return err
+	}
+	inbound, err := storage.NewInbound(message, from, time.Now())
+	if err != nil {
+		return err
+	}
+
+	s.Instance.Storage.CreateInbound(inbound)
 
 	return nil
 }
@@ -42,9 +56,13 @@ func ServeSMTP(instance *instance.Instance) {
 
 	logrus.Infoln("Initialize SMTP")
 
+	smtp := &SMTP{
+		Instance: instance,
+	}
+
 	server := &smtpd.Server{
 		Addr:         internal.Config.SMTPHost,
-		Handler:      mailHandler,
+		Handler:      smtp.mailHandler,
 		HandlerRcpt:  rcptHandler,
 		AuthHandler:  authHandler,
 		AuthRequired: !internal.Config.SMTPNoAuth,

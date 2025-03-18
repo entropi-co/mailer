@@ -2,22 +2,32 @@ package storage
 
 import (
 	"github.com/Masterminds/squirrel"
+	"io"
+	"net/mail"
+	"strings"
 	"time"
 )
 
 type Inbound struct {
-	ID          uint64    `json:"id"`
-	Content     string    `json:"content"`
-	Sender      string    `json:"sender"`
-	DeliveredAt time.Time `json:"delivered_at"`
+	ID          uint64              `json:"id"`
+	Header      map[string][]string `json:"header"`
+	Body        string              `json:"body"`
+	Sender      string              `json:"sender"`
+	DeliveredAt time.Time           `json:"delivered_at"`
 }
 
-func (s *Storage) NewInbound(content string, sender string, deliveredAt time.Time) *Inbound {
+func NewInbound(message *mail.Message, sender string, deliveredAt time.Time) (*Inbound, error) {
+	buf := new(strings.Builder)
+	_, err := io.Copy(buf, message.Body)
+	if err != nil {
+		return nil, err
+	}
 	return &Inbound{
-		Content:     content,
+		Header:      message.Header,
+		Body:        buf.String(),
 		Sender:      sender,
 		DeliveredAt: deliveredAt,
-	}
+	}, nil
 }
 
 func (s *Storage) CreateInbound(inbound Inbound, recipients []uint64) error {
@@ -30,7 +40,7 @@ func (s *Storage) CreateInbound(inbound Inbound, recipients []uint64) error {
 	_, err = squirrel.
 		Insert("inbounds").
 		Columns("id", "content", "sender", "delivered_at").
-		Values(inbound.ID, inbound.Content, inbound.Sender, inbound.DeliveredAt).
+		Values(inbound.ID, inbound.Body, inbound.Sender, inbound.DeliveredAt).
 		RunWith(tx).
 		Exec()
 	if err != nil {

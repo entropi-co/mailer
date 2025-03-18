@@ -32,3 +32,11 @@ func (s *Storage) CreateUser(id uint64) (*User, error) {
 
 	return &user, nil
 }
+
+func (s *Storage) QueryUsersByLocals(locals []string) ([]*User, error) {
+	return nil, nil
+}
+
+func (s *Storage) QueryUserIDsByLocals(id uint64) ([]uint64, error) {
+	return nil, nil
+}
