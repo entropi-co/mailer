@@ -2,8 +2,6 @@ package smtp
 
 import (
 	"bytes"
-	"errors"
-	"fmt"
 	"github.com/mhale/smtpd"
 	"github.com/sirupsen/logrus"
 	"mailer/internal"
@@ -29,7 +27,14 @@ func (s *SMTP) mailHandler(origin net.Addr, from string, to []string, data []byt
 		return err
 	}
 
-	s.Instance.Storage.CreateInbound(inbound)
+	recipientIds, err := s.Instance.Storage.QueryUserIDsByLocals(to)
+	if err != nil {
+		return err
+	}
+
+	if err = s.Instance.Storage.CreateInbound(inbound, recipientIds); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -45,6 +50,7 @@ func rcptHandler(remoteAddr net.Addr, from string, to string) bool {
 }
 
 // authHandler checks if password matches service key
+// TODO: Add API key access method
 func authHandler(remoteAddr net.Addr, mechanism string, username []byte, password []byte, shared []byte) (bool, error) {
 	return string(username) == "service" && string(password) == internal.Config.GlobalServiceKey, nil
 }
@@ -76,7 +82,7 @@ func ServeSMTP(instance *instance.Instance) {
 		}
 	}
 
-	logrus.Infoln("Listening")
+	logrus.Infoln("Listening SMTP")
 	err := server.ListenAndServe()
 	if err != nil {
 		logrus.Fatalf("Failed to start SMTP server: %s", err)

@@ -1,6 +1,9 @@
 package api
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/gofiber/fiber/v2"
+	"mailer/internal/snowflakes"
+)
 
 type (
 	UserCreatePayload struct {
@@ -18,7 +21,12 @@ func (a *API) handleUserCreate(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	user, err := a.Instance.Storage.CreateUser(payload.ID)
+	id, err := snowflakes.ValueFromString(payload.ID)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	user, err := a.Instance.Storage.CreateUser(id)
 	if err != nil {
 		return err
 	}

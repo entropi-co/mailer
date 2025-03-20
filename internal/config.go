@@ -11,6 +11,8 @@ type MailerConfig struct {
 
 	DatabaseURL string `env:"DATABASE_URL"`
 
+	IMAPHost string `env:"IMAP_HOST" envDefault:"0.0.0.0:993"`
+
 	SMTPEnabled bool   `env:"SMTP_ENABLED" envDefault:"true"`
 	SMTPHost    string `env:"SMTP_HOST" envDefault:"0.0.0.0:587"`
 	SMTPDomain  string `env:"SMTP_DOMAIN"`

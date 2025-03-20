@@ -30,7 +30,7 @@ func NewInbound(message *mail.Message, sender string, deliveredAt time.Time) (*I
 	}, nil
 }
 
-func (s *Storage) CreateInbound(inbound Inbound, recipients []uint64) error {
+func (s *Storage) CreateInbound(inbound *Inbound, recipients []uint64) error {
 	tx, err := s.Database.Begin()
 	if err != nil {
 		return err
