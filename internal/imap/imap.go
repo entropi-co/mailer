@@ -8,7 +8,8 @@ import (
 )
 
 type IMAP struct {
-	Instance *instance.Instance
+	Instance  *instance.Instance
+	Mailboxes map[uint64]*Mailbox
 }
 
 func ServeIMAP(instance *instance.Instance) {
