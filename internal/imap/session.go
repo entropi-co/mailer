@@ -5,10 +5,14 @@ import (
 	"github.com/emersion/go-imap/v2"
 	"github.com/emersion/go-imap/v2/imapserver"
 	"mailer/internal/instance"
+	"mailer/internal/storage"
+	"time"
 )
 
 type Session struct {
 	Instance *instance.Instance
+	User     *storage.User
+	Mailbox  *storage.Mailbox
 }
 
 func (i *IMAP) NewSession() *Session {
@@ -18,8 +22,7 @@ func (i *IMAP) NewSession() *Session {
 }
 
 func (s Session) Close() error {
-	//TODO implement me
-	panic("implement me")
+	return nil
 }
 
 func (s Session) Login(username, password string) error {
@@ -32,12 +35,33 @@ func (s Session) Login(username, password string) error {
 		return errors.New("api key mismatch")
 	}
 
+	user, err := s.Instance.Storage.QueryUserByLocal(username)
+	if err != nil {
+		return err
+	}
+
+	s.User = user
+
 	return nil
 }
 
-func (s Session) Select(mailbox string, options *imap.SelectOptions) (*imap.SelectData, error) {
-	//TODO implement me
-	panic("implement me")
+func (s Session) Select(name string, options *imap.SelectOptions) (*imap.SelectData, error) {
+	mailbox, metadata, err := s.Instance.Storage.QueryMailboxWithMetadata(s.User.ID, name)
+	if err != nil {
+		return nil, err
+	}
+
+	s.Mailbox = mailbox
+
+	return &imap.SelectData{
+		Flags:          nil,
+		PermanentFlags: nil,
+		NumMessages:    uint32(metadata.InboundCount),
+		UIDNext:        imap.UID(metadata.UID + 1),
+		UIDValidity:    uint32(time.Now().UnixMilli()),
+		List:           nil,
+		HighestModSeq:  0,
+	}, nil
 }
 
 func (s Session) Create(mailbox string, options *imap.CreateOptions) error {
@@ -106,7 +130,7 @@ func (s Session) Search(kind imapserver.NumKind, criteria *imap.SearchCriteria, 
 }
 
 func (s Session) Fetch(w *imapserver.FetchWriter, numSet imap.NumSet, options *imap.FetchOptions) error {
-	//TODO implement me
+
 	panic("implement me")
 }
 
