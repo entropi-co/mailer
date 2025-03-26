@@ -19,12 +19,14 @@ func (s *Storage) QueryKeyByLocal(local string) (*Key, error) {
 	row := builder.
 		Select("value", "owner").
 		From("keys").
-		Where(squirrel.Eq{
-			"id": builder.
+		Where(
+			builder.
 				Select("id").
 				From("users").
-				Where(squirrel.Eq{"local": local}),
-		}).
+				Where(squirrel.Eq{"local": local}).
+				Prefix("owner IN (").
+				Suffix(")"),
+		).
 		RunWith(s.Database).
 		QueryRow()
 

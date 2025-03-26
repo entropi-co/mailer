@@ -79,7 +79,9 @@ func (s *Storage) QueryMailboxWithMetadata(user uint64, name string) (*Mailbox, 
 			"m.owner": user,
 			"m.name":  name,
 		}).
-		GroupBy("m.id")
+		GroupBy("m.id").
+		RunWith(s.Database).
+		QueryRow()
 
 	var mailbox Mailbox
 	var metadata MailboxMetadata

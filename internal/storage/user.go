@@ -40,6 +40,7 @@ func (s *Storage) QueryUserByLocal(local string) (*User, error) {
 		Select("id", "local", "created_at").
 		From("users").
 		Where(squirrel.Eq{"local": local}).
+		RunWith(s.Database).
 		Query()
 	if err != nil {
 		return nil, err
@@ -47,7 +48,7 @@ func (s *Storage) QueryUserByLocal(local string) (*User, error) {
 
 	rows.Next()
 	var user User
-	if err := rows.Scan(&user.ID, user.Local, user.CreatedAt); err != nil {
+	if err := rows.Scan(&user.ID, &user.Local, &user.CreatedAt); err != nil {
 		return nil, err
 	}
 
@@ -114,4 +115,25 @@ func (s *Storage) QueryUserIDsByLocals(locals []string) ([]uint64, error) {
 	}
 
 	return ids, nil
+}
+
+func (s *Storage) QueryUserByLocalAndKeyValue(local string, value string) (*User, error) {
+	builder := squirrel.
+		StatementBuilder.
+		PlaceholderFormat(squirrel.Dollar)
+
+	row := builder.
+		Select("id", "local", "created_at").
+		From("users").
+		LeftJoin("keys k ON k.owner = users.id").
+		Where(squirrel.Eq{"users.local": local, "k.value": value}).
+		RunWith(s.Database).
+		QueryRow()
+
+	var user User
+	if err := row.Scan(&user.ID, &user.Local, &user.CreatedAt); err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }

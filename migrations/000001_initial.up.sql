@@ -27,6 +27,7 @@ CREATE TABLE mailboxes
 CREATE TABLE inbounds
 (
     id           int8 primary key,
+    header       jsonb not null default '{}',
     content      text,
     sender       varchar(320)             not null,
     delivered_at timestamp with time zone not null default now()
@@ -36,8 +37,7 @@ CREATE TABLE inbounds_mailboxes
 (
     inbound int8 references inbounds (id),
     mailbox int8 references mailboxes (id),
-    uid     int4 default (select max(uid) + 1
-                          from inbounds_mailboxes),
+    uid     int4 not null,
     unique (inbound, mailbox),
     unique (uid, mailbox)
 );

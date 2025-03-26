@@ -15,7 +15,10 @@ type IMAP struct {
 func ServeIMAP(instance *instance.Instance) {
 	logrus.Infoln("Initialize IMAP")
 
-	imap := &IMAP{Instance: instance}
+	imap := &IMAP{
+		Instance:  instance,
+		Mailboxes: make(map[uint64]*Mailbox),
+	}
 
 	server := imapserver.New(&imapserver.Options{
 		NewSession: func(conn *imapserver.Conn) (imapserver.Session, *imapserver.GreetingData, error) {
@@ -24,7 +27,7 @@ func ServeIMAP(instance *instance.Instance) {
 		Caps:         nil,
 		Logger:       nil,
 		TLSConfig:    nil,
-		InsecureAuth: false,
+		InsecureAuth: true,
 		DebugWriter:  nil,
 	})
 
