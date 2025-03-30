@@ -19,16 +19,18 @@ CREATE TABLE mailboxes
     name         varchar(255)             not null,
     display_name varchar(255)             null,
     owner        int8                     null references users (id),
+    priority     int                      not null default 0,
     type         mailbox_type             not null default 'user',
     created_at   timestamp with time zone not null default now(),
+    uid_next     int4                     not null default 0,
+    uid_validity int4                     not null default 0,
     unique (owner, name)
 );
 
 CREATE TABLE inbounds
 (
     id           int8 primary key,
-    header       jsonb not null default '{}',
-    content      text,
+    body         bytea,
     sender       varchar(320)             not null,
     delivered_at timestamp with time zone not null default now()
 );

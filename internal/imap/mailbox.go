@@ -100,13 +100,14 @@ func (v *MailboxView) queryInboundsFromSeqSet(seqSet *imap.SeqSet) ([]*storage.I
 	}
 
 	decodedNums := make([]uint32, len(nums))
-	for n := range nums {
-		num := nums[n]
+	for i, num := range nums {
 		decoded := v.Tracker.DecodeSeqNum(num)
 		if decoded != 0 {
-			decodedNums = append(decodedNums, num)
+			decodedNums[i] = decoded
 		}
 	}
+
+	logrus.Debugf("[MailboxView#queryInboundsFromSeqSet] nums: %v, decodedNums: %v", nums, decodedNums)
 
 	inbounds, err := v.Session.Storage().QueryInboundsBySequences(v.Mailbox.Source.ID, decodedNums)
 	if err != nil {
@@ -151,11 +152,12 @@ func (v *MailboxView) Fetch(w *imapserver.FetchWriter, numSet imap.NumSet, optio
 	}
 
 	for _, inbound := range inbounds {
+		logrus.Printf("[MailboxView#Fetch] CreateMessage for inbound %+v", inbound)
 		mw := w.CreateMessage(v.Tracker.EncodeSeqNum(inbound.Sequence))
 		mw.WriteUID(imap.UID(inbound.UID))
 
 		for _, section := range options.BodySection {
-			buffer := imapserver.ExtractBodySection(bytes.NewReader([]byte(inbound.Body)), section)
+			buffer := imapserver.ExtractBodySection(bytes.NewReader(inbound.Body), section)
 			sw := mw.WriteBodySection(section, int64(len(buffer)))
 			_, writeErr := sw.Write(buffer)
 			closeErr := sw.Close()
@@ -168,7 +170,7 @@ func (v *MailboxView) Fetch(w *imapserver.FetchWriter, numSet imap.NumSet, optio
 		}
 
 		for _, section := range options.BinarySection {
-			buffer := imapserver.ExtractBinarySection(bytes.NewReader([]byte(inbound.Body)), section)
+			buffer := imapserver.ExtractBinarySection(bytes.NewReader(inbound.Body), section)
 			sw := mw.WriteBinarySection(section, int64(len(buffer)))
 			_, writeErr := sw.Write(buffer)
 			closeErr := sw.Close()
@@ -181,7 +183,7 @@ func (v *MailboxView) Fetch(w *imapserver.FetchWriter, numSet imap.NumSet, optio
 		}
 
 		for _, size := range options.BinarySectionSize {
-			n := imapserver.ExtractBinarySectionSize(bytes.NewReader([]byte(inbound.Body)), size)
+			n := imapserver.ExtractBinarySectionSize(bytes.NewReader(inbound.Body), size)
 			mw.WriteBinarySectionSize(size, n)
 		}
 

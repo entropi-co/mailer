@@ -107,3 +107,15 @@ func (s *Storage) QueryMailboxCurrentUID() (uint, error) {
 
 	return uid, nil
 }
+
+// QueryPrimaryMailboxByUserLocal queries a primary mailbox of user
+// The primary mailbox is determined by priority and created_at,
+// where mailbox with the least priority and earliest created_at is primary
+func (s *Storage) QueryPrimaryMailboxByUserLocal(local string) (*Mailbox, error) {
+	squirrel.
+		Select("mailboxes.id").
+		From("mailboxes").
+		LeftJoin("users on users.id = mailboxes.owner")
+
+	return nil, nil
+}

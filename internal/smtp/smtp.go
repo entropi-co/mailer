@@ -1,14 +1,12 @@
 package smtp
 
 import (
-	"bytes"
 	"github.com/mhale/smtpd"
 	"github.com/sirupsen/logrus"
 	"mailer/internal"
 	"mailer/internal/instance"
 	"mailer/internal/storage"
 	"net"
-	"net/mail"
 	"strings"
 	"time"
 )
@@ -18,21 +16,16 @@ type SMTP struct {
 }
 
 func (s *SMTP) mailHandler(origin net.Addr, from string, to []string, data []byte) error {
-	message, err := mail.ReadMessage(bytes.NewReader(data))
-	if err != nil {
-		return err
-	}
-	inbound, err := storage.NewInbound(message, from, time.Now())
-	if err != nil {
-		return err
-	}
-
-	recipientIds, err := s.Instance.Storage.QueryUserIDsByLocals(to)
+	//message, err := mail.ReadMessage(bytes.NewReader(data))
+	//if err != nil {
+	//	return err
+	//}
+	inbound, err := storage.NewInbound(data, from, time.Now())
 	if err != nil {
 		return err
 	}
 
-	if err = s.Instance.Storage.CreateInbound(inbound, recipientIds); err != nil {
+	if err = s.Instance.Storage.AddInboundToRecipientsPrimaryMailbox(inbound, to); err != nil {
 		return err
 	}
 

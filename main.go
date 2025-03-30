@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/sirupsen/logrus"
 	"mailer/internal"
 	"mailer/internal/api"
 	"mailer/internal/imap"
@@ -10,6 +11,8 @@ import (
 
 func main() {
 	internal.LoadConfig()
+
+	logrus.SetLevel(logrus.DebugLevel)
 
 	inst := instance.CreateInstance()
 	go smtp.ServeSMTP(inst)
